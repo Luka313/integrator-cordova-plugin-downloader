@@ -1,6 +1,6 @@
 {
   "name": "integrator-cordova-plugin-downloader",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Downloader",
   "cordova": {
     "id": "integrator-cordova-plugin-downloader",
