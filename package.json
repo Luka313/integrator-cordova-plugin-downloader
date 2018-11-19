@@ -1,9 +1,9 @@
 {
-  "name": "cordova-plugin-hello-world",
+  "name": "integrator-cordova-plugin-downloader",
   "version": "0.0.1",
-  "description": "HelloWorld",
+  "description": "Downloader",
   "cordova": {
-    "id": "cordova-plugin-hello-world",
+    "id": "integrator-cordova-plugin-downloader",
     "platforms": [
       "android"
     ]
@@ -12,6 +12,10 @@
     "ecosystem:cordova",
     "cordova-android"
   ],
-  "author": "",
-  "license": "ISC"
+  "author": "Integrator Dubrovnik",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Luka313/integrator-cordova-plugin-downloader.git"
+  },
+  "license": "MIT"
 }
