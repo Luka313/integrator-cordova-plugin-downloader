@@ -10,7 +10,9 @@
                 <param name="android-package" value="hr.integrator.cordova.plugins.downloader.Downloader" />
             </feature>
         </config-file>
-        <config-file parent="/*" target="AndroidManifest.xml"></config-file>
+        <config-file parent="/*" target="AndroidManifest.xml">
+			<uses-permission android:name="android.permission.INTERNET" />
+		</config-file>
         <source-file src="src/android/Downloader.java" target-dir="src/integrator-cordova-plugin-downloader/Downloader" />
     </platform>
 </plugin>
