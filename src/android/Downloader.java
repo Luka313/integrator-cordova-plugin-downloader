@@ -37,14 +37,14 @@ public class Downloader extends CordovaPlugin {
   long downloadId = 0;
 
   @Override
-    public void initialize(final CordovaInterface cordova, final CordovaWebView webView) {
-        super.initialize(cordova, webView);
-
-        downloadManager = (DownloadManager) cordova.getActivity()
+  public void initialize(final CordovaInterface cordova, final CordovaWebView webView) {
+	  super.initialize(cordova, webView);
+	  
+	  downloadManager = (DownloadManager) cordova.getActivity()
                 .getApplication()
                 .getApplicationContext()
                 .getSystemService(Context.DOWNLOAD_SERVICE);
-    }
+	}
 
   @Override
   public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException  {
@@ -52,7 +52,7 @@ public class Downloader extends CordovaPlugin {
 
 	  callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.INVALID_ACTION));
       return false;
-  }
+	}
   
   protected boolean download(JSONObject obj, CallbackContext callbackContext) throws JSONException {
     
@@ -90,23 +90,13 @@ public class Downloader extends CordovaPlugin {
 		}
   }
 
-  private void sendDownloadResult(long id, String locationUri) {
-  
-    try{
-      JSONObject json = new JSONObject();
-		  json.put("referenceId", Long.toString(id));
-		  json.put("url", locationUri);
-
-		  if (this.downloadReceiverCallbackContext != null) {
-			  PluginResult result = new PluginResult(PluginResult.Status.OK, json);
-			  result.setKeepCallback(true);
-        this.downloadReceiverCallbackContext.sendPluginResult(result);
-      }
-    }
-    catch(JSONException e){
-      LOG.e(LOG_TAG, "Error preparing download result: " + e.getMessage(), e);
-    }
-  }
+  private void sendDownloadResult(String locationUri) {
+	  if(this.downloadReceiverCallbackContext != null){
+		  PluginResult result = new PluginResult(PluginResult.Status.OK, json);
+		  result.setKeepCallback(true);
+		  this.downloadReceiverCallbackContext.sendPluginResult(locationUri);
+		}  
+	}
 
   private BroadcastReceiver downloadReceiver = new BroadcastReceiver() {
   
@@ -126,7 +116,7 @@ public class Downloader extends CordovaPlugin {
 
         switch(status){
           case DownloadManager.STATUS_SUCCESSFUL:
-            sendDownloadResult(referenceId, downloadedTo);
+            sendDownloadResult(downloadedTo);
             break;
           case DownloadManager.STATUS_FAILED:
             downloadReceiverCallbackContext.error(reason);
