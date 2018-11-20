@@ -92,9 +92,9 @@ public class Downloader extends CordovaPlugin {
 
   private void sendDownloadResult(String locationUri) {
 	  if(this.downloadReceiverCallbackContext != null){
-		  PluginResult result = new PluginResult(PluginResult.Status.OK, json);
+		  PluginResult result = new PluginResult(PluginResult.Status.OK, locationUri);
 		  result.setKeepCallback(true);
-		  this.downloadReceiverCallbackContext.sendPluginResult(locationUri);
+		  this.downloadReceiverCallbackContext.sendPluginResult(result);
 		}  
 	}
 
