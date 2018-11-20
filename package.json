@@ -17,5 +17,5 @@
     "type": "git",
     "url": "git+https://github.com/Luka313/integrator-cordova-plugin-downloader.git"
   },
-  "license": "MIT"
+  "license": "ISC"
 }
