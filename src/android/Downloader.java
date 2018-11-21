@@ -20,6 +20,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.Manifest;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,39 +32,57 @@ public class Downloader extends CordovaPlugin {
 	
   private static final String LOG_TAG = "Downloader";
 
+  public static final String WRITE_EXTERNAL_STORAGE = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+  public static final int DOWNLOAD_ACTION_PERMISSION_REQ_CODE = 1;
+
+  public static final String PERMISSION_DENIED_ERROR = "PERMISSION DENIED";
+
   DownloadManager downloadManager;
   BroadcastReceiver receiver;
 
   private CallbackContext downloadReceiverCallbackContext = null;
+  private JSONArray executeArgs;
   long downloadId = 0;
 
   @Override
   public void initialize(final CordovaInterface cordova, final CordovaWebView webView) {
-	  super.initialize(cordova, webView);
-	  
+      super.initialize(cordova, webView);
+    
 	  downloadManager = (DownloadManager) cordova.getActivity()
                 .getApplication()
                 .getApplicationContext()
                 .getSystemService(Context.DOWNLOAD_SERVICE);
-	}
+  }
 
   @Override
   public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException  {
-      if(action.equals("download")) return download(args.getJSONObject(0), callbackContext);
 
-	  callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.INVALID_ACTION));
-      return false;
-	}
+      executeArgs = args;
+
+      if (downloadReceiverCallbackContext != null) {
+          removeDownloadReceiver();
+      }
+      downloadReceiverCallbackContext = callbackContext;
+
+      if(action.equals("download")){
+          if(cordova.hasPermission(WRITE_EXTERNAL_STORAGE)){
+              download(args.getJSONObject(0), callbackContext);
+          }
+          else {
+              cordova.requestPermission(this, DOWNLOAD_ACTION_PERMISSION_REQ_CODE, WRITE_EXTERNAL_STORAGE);
+          }
+      }
+      else{
+          callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.INVALID_ACTION));
+          return false;
+      }
+
+      return true;
+  }
   
   protected boolean download(JSONObject obj, CallbackContext callbackContext) throws JSONException {
     
     DownloadManager.Request request = deserialiseRequest(obj);
-      
-	  if (this.downloadReceiverCallbackContext != null) {
-		  removeDownloadReceiver();
-    }
-    
-    this.downloadReceiverCallbackContext = callbackContext;
 
     IntentFilter intentFilter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
 
@@ -90,13 +110,24 @@ public class Downloader extends CordovaPlugin {
 		}
   }
 
-  private void sendDownloadResult(String locationUri) {
-	  if(this.downloadReceiverCallbackContext != null){
-		  PluginResult result = new PluginResult(PluginResult.Status.OK, locationUri);
-		  result.setKeepCallback(true);
-		  this.downloadReceiverCallbackContext.sendPluginResult(result);
-		}  
-	}
+
+
+  public void onRequestPermissionResult(int requestCode, String[] permissions, int[] grantResults) throws JSONException {
+    for(int r:grantResults)
+    {
+        if(r == PackageManager.PERMISSION_DENIED)
+        {
+            downloadReceiverCallbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, PERMISSION_DENIED_ERROR));
+            return;
+        }
+    }
+    switch(requestCode)
+    {
+        case DOWNLOAD_ACTION_PERMISSION_REQ_CODE:
+            download(executeArgs.getJSONObject(0), downloadReceiverCallbackContext);
+            break;
+    }
+  }
 
   private BroadcastReceiver downloadReceiver = new BroadcastReceiver() {
   
@@ -130,6 +161,14 @@ public class Downloader extends CordovaPlugin {
       }
     }
   };
+
+  private void sendDownloadResult(String locationUri) {
+      if(this.downloadReceiverCallbackContext != null){
+          PluginResult result = new PluginResult(PluginResult.Status.OK, locationUri);
+          result.setKeepCallback(true);
+          this.downloadReceiverCallbackContext.sendPluginResult(result);
+      }
+  }
 
   protected DownloadManager.Request deserialiseRequest(JSONObject obj) throws JSONException {
     DownloadManager.Request req = new DownloadManager.Request(Uri.parse(obj.getString("uri")));
